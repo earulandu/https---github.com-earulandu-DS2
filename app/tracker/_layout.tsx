@@ -13,7 +13,7 @@ export default function TrackerLayout() {
         }}
       />
       <Stack.Screen
-        name="join/page"
+        name="join"
         options={{
           headerShown: true,
           headerTitle: 'Join Match',
