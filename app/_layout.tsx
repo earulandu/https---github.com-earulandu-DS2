@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SplashScreen, Stack, useRouter, useSegments } from 'expo-router';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { View, Text } from 'react-native';
-import { ThemeProvider } from '../contexts/ThemeContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // Keep the native splash screen visible while the app initializes.
@@ -149,18 +149,15 @@ function RootLayoutNav() {
   return (
     <AuthContext.Provider value={{ session, isReady }}>
       <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
+        {/* Group screens */}
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(auth)" />
+
+        {/* Screens presented from the root */}
         <Stack.Screen name="tracker" />
-        <Stack.Screen
-          name="post/[id]"
-          options={{
-            title: 'Post',
-            headerShown: true,
-            headerStyle: { backgroundColor: '#fff' },
-            headerTitleStyle: { fontSize: 18, fontWeight: '600' },
-          }}
-        />
+        <Stack.Screen name="history" />
+        <Stack.Screen name="stats" />
+        <Stack.Screen name="friends" />
       </Stack>
     </AuthContext.Provider>
   );

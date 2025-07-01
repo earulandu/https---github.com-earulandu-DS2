@@ -14,32 +14,29 @@ import { useAuth } from '../_layout';
 
 // Array of fun dice facts
 const diceFacts = [
-  "The oldest known dice were excavated in Iran and date back 5,000 years!",
-  "In ancient Rome, throwing dice was illegal except during Saturnalia festivals.",
-  "The opposite sides of a standard die always add up to 7.",
+  'The oldest known dice were excavated in Iran and date back 5,000 years!',
+  'In ancient Rome, throwing dice was illegal except during Saturnalia festivals.',
+  'The opposite sides of a standard die always add up to 7.',
   "The dots on dice are called 'pips' - a term that dates back to the 14th century.",
-  "Casino dice are transparent to prevent cheating with weighted dice.",
+  'Casino dice are transparent to prevent cheating with weighted dice.',
   "The world's largest die weighs over 4,500 pounds and is located in Las Vegas!",
-  "In Japan, dice games were so popular that the government banned them multiple times throughout history.",
-  "The probability of rolling snake eyes (two ones) is 1 in 36, or about 2.78%.",
+  'In Japan, dice games were so popular that the government banned them multiple times throughout history.',
+  'The probability of rolling snake eyes (two ones) is 1 in 36, or about 2.78%.',
   "Medieval dice were often made from animal bones, earning them the nickname 'bones'.",
-  "The ancient Greeks believed dice rolls were controlled by the gods, not chance.",
-  "In World War II, British POWs received escape maps hidden inside Monopoly dice.",
-  "The most expensive dice ever sold were ancient Roman dice that fetched $17,925 at auction.",
-  "Dice have been found in Egyptian tombs dating back to 2000 BCE.",
+  'The ancient Greeks believed dice rolls were controlled by the gods, not chance.',
+  'In World War II, British POWs received escape maps hidden inside Monopoly dice.',
+  'The most expensive dice ever sold were ancient Roman dice that fetched $17,925 at auction.',
+  'Dice have been found in Egyptian tombs dating back to 2000 BCE.',
   "The phrase 'no dice' meaning 'no luck' originated in American slang in the early 20th century.",
-  "Professional casino dice are manufactured to a tolerance of 0.0005 inches!",
-  "The Unicode character for die face-1 is ⚀ and was added in 1993.",
-  "In Dungeons & Dragons, a natural 20 (rolling 20 on a d20) is cause for celebration!",
-  "The ancient Chinese game of Sic Bo uses three dice and dates back to ancient China.",
-  "Fuzzy dice hanging from rearview mirrors became popular in the 1950s as a symbol of rebellion.",
+  'Professional casino dice are manufactured to a tolerance of 0.0005 inches!',
+  'The Unicode character for die face-1 is ⚀ and was added in 1993.',
+  'In Dungeons & Dragons, a natural 20 (rolling 20 on a d20) is cause for celebration!',
+  'The ancient Chinese game of Sic Bo uses three dice and dates back to ancient China.',
+  'Fuzzy dice hanging from rearview mirrors became popular in the 1950s as a symbol of rebellion.',
   "The phrase 'the die is cast' was famously said by Julius Caesar when crossing the Rubicon.",
   "The word 'Dice' is derived from the Old French word 'dé', which means 'die'!",
-  "Does anyone read these facts? If you do, you're rolling with the best!"
-
+  "Does anyone read these facts? If you do, you're rolling with the best!",
 ];
-
-
 
 export default function MainMenuScreen() {
   const router = useRouter();
@@ -62,11 +59,12 @@ export default function MainMenuScreen() {
 
   const loadUserData = async () => {
     if (session?.user) {
-      const firstName = session.user.user_metadata?.first_name || 
-                       session.user.user_metadata?.nickname || 
-                       'Player';
+      const firstName =
+        session.user.user_metadata?.first_name ||
+        session.user.user_metadata?.nickname ||
+        'Player';
       setUserName(firstName);
-      
+
       try {
         // Load real user stats from saved_matches
         const { data: matches, error } = await supabase
@@ -96,16 +94,16 @@ export default function MainMenuScreen() {
               const userSlot = Object.entries(match.userSlotMap).find(
                 ([_, userId]) => userId === session.user.id
               )?.[0];
-              
+
               if (userSlot) {
                 const playerSlot = parseInt(userSlot);
                 const userTeam = playerSlot <= 2 ? 1 : 2;
-                
+
                 // Check if user's team won
                 if (match.winnerTeam === userTeam) {
                   totalWins++;
                 }
-                
+
                 // Add user's score from this match
                 const userStats = match.playerStats[playerSlot];
                 if (userStats) {
@@ -114,12 +112,14 @@ export default function MainMenuScreen() {
               }
             });
 
-            const winRate = playerMatches.length > 0 
-              ? Math.round((totalWins / playerMatches.length) * 100) 
-              : 0;
-            const avgScore = playerMatches.length > 0 
-              ? Math.round(totalScore / playerMatches.length) 
-              : 0;
+            const winRate =
+              playerMatches.length > 0
+                ? Math.round((totalWins / playerMatches.length) * 100)
+                : 0;
+            const avgScore =
+              playerMatches.length > 0
+                ? Math.round(totalScore / playerMatches.length)
+                : 0;
 
             setStats({
               totalGames: playerMatches.length,
@@ -174,7 +174,7 @@ export default function MainMenuScreen() {
     Alert.prompt(
       'Join Room',
       'Enter room code:',
-      (code) => {
+      code => {
         if (code && code.length === 6) {
           router.push({
             pathname: '/tracker/[roomCode]',
@@ -186,36 +186,49 @@ export default function MainMenuScreen() {
       },
       'plain-text'
     );
+    const handleJoinRoom = () => {
+      Alert.prompt(
+        'Join Room',
+        'Enter room code:',
+        code => {
+          if (code && code.length === 6) {
+            // 👇 ADD THIS CONSOLE LOG
+            console.log(`🚀 [NAV] Attempting to navigate to /tracker/${code}`);
+            router.push({
+              pathname: '/tracker/[roomCode]',
+              params: { roomCode: code },
+            } as any);
+          } else {
+            Alert.alert('Invalid Code', 'Room code must be 6 characters');
+          }
+        },
+        'plain-text'
+      );
+    };
   };
 
   const handleAuthRequired = (action: string) => {
     if (!session) {
-      Alert.alert(
-        'Sign In Required',
-        `Please sign in to ${action}`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Sign In', onPress: () => router.push('/(auth)/login') }
-        ]
-      );
+      Alert.alert('Sign In Required', `Please sign in to ${action}`, [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Sign In', onPress: () => router.push('/(auth)/login') },
+      ]);
       return false;
     }
     return true;
   };
 
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
       {/* Header */}
       <ThemedView style={styles.header}>
-        <ThemedText variant="title">
-          Hello, {userName}! 👋
-        </ThemedText>
+        <ThemedText variant="title">Hello, {userName}! 👋</ThemedText>
         <ThemedText variant="caption" style={styles.headerSubtext}>
-           Ready to play?
+          Ready to play?
         </ThemedText>
       </ThemedView>
 
@@ -272,13 +285,19 @@ export default function MainMenuScreen() {
           icon={<Ionicons name="flash" size={24} color="#FFFFFF" />}
           style={styles.quickStartButton}
         />
-        
+
         <ThemedButton
           title="Join Room"
           variant="outline"
           onPress={handleJoinRoom}
           size="large"
-          icon={<Ionicons name="enter-outline" size={24} color={theme.colors.primary} />}
+          icon={
+            <Ionicons
+              name="enter-outline"
+              size={24}
+              color={theme.colors.primary}
+            />
+          }
           style={styles.joinButton}
         />
       </View>
@@ -291,7 +310,8 @@ export default function MainMenuScreen() {
           color={theme.colors.info}
           onPress={() => {
             if (handleAuthRequired('view game history')) {
-              router.push('../history');
+              // CORRECTED: Use absolute path
+              router.push('/history');
             }
           }}
         />
@@ -301,7 +321,8 @@ export default function MainMenuScreen() {
           color={theme.colors.success}
           onPress={() => {
             if (handleAuthRequired('view statistics')) {
-              router.push('../stats');
+              // CORRECTED: Use absolute path
+              router.push('/stats');
             }
           }}
         />
@@ -309,9 +330,11 @@ export default function MainMenuScreen() {
           title="Friends"
           icon="people-outline"
           color={theme.colors.warning}
-             onPress={() => {
-            if (handleAuthRequired('view statistics')) {
-              router.push('../friends');
+          onPress={() => {
+            if (handleAuthRequired('view friends')) {
+              // Corrected action text
+              // CORRECTED: Use absolute path
+              router.push('/friends');
             }
           }}
         />
@@ -319,7 +342,9 @@ export default function MainMenuScreen() {
           title="Tournaments"
           icon="trophy-outline"
           color={theme.colors.error}
-          onPress={() => Alert.alert('Coming Soon', 'Tournaments will be available soon!')}
+          onPress={() =>
+            Alert.alert('Coming Soon', 'Tournaments will be available soon!')
+          }
         />
       </View>
 

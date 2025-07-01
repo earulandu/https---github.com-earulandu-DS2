@@ -3,12 +3,20 @@ import { supabase } from '@/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { ThemedButton } from '../../components/themed/ThemedButton';
-import { ThemedInput } from '../../components/themed/ThemedInput';
-import { ThemedText } from '../../components/themed/ThemedText';
-import { ThemedView } from '../../components/themed/ThemedView';
-import { useTheme } from '../../contexts/ThemeContext';
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { ThemedButton } from '@/components/themed/ThemedButton';
+import { ThemedInput } from '@/components/themed/ThemedInput';
+import { ThemedText } from '@/components/themed/ThemedText';
+import { ThemedView } from '@/components/themed/ThemedView';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -43,26 +51,28 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Back Button */}
-        <TouchableOpacity 
-          onPress={handleBack} 
-          style={styles.backButton}
-        >
+        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#3b82f6" />
           <ThemedText style={styles.backText}>Back</ThemedText>
         </TouchableOpacity>
 
         <ThemedView style={styles.content}>
           {/* Logo/Icon */}
-          <View style={[styles.logoContainer, { backgroundColor: theme.colors.primary }]}>
+          <View
+            style={[
+              styles.logoContainer,
+              { backgroundColor: theme.colors.primary },
+            ]}
+          >
             <Ionicons name="dice" size={60} color="#FFFFFF" />
           </View>
 
@@ -82,7 +92,13 @@ export default function LoginScreen() {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
-              icon={<Ionicons name="mail-outline" size={20} color={theme.colors.textSecondary} />}
+              icon={
+                <Ionicons
+                  name="mail-outline"
+                  size={20}
+                  color={theme.colors.textSecondary}
+                />
+              }
             />
 
             <ThemedInput
@@ -90,7 +106,13 @@ export default function LoginScreen() {
               value={password}
               onChangeText={setPassword}
               secureTextEntry
-              icon={<Ionicons name="lock-closed-outline" size={20} color={theme.colors.textSecondary} />}
+              icon={
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={20}
+                  color={theme.colors.textSecondary}
+                />
+              }
               style={{ marginTop: theme.spacing.md }}
             />
 
@@ -110,11 +132,16 @@ export default function LoginScreen() {
               onPress={() => router.push('/(auth)/signUp')}
               size="small"
             />
-            
+
             <ThemedButton
               title="Forgot Password?"
               variant="ghost"
-              onPress={() => Alert.alert('Reset Password', 'Password reset functionality coming soon!')}
+              onPress={() =>
+                Alert.alert(
+                  'Reset Password',
+                  'Password reset functionality coming soon!'
+                )
+              }
               size="small"
             />
           </View>
