@@ -180,7 +180,6 @@ function RootLayoutNav() {
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="tracker" />
-
           <Stack.Screen
             name="post/[id]"
             options={{

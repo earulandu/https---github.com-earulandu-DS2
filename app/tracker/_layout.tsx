@@ -4,11 +4,10 @@ import React from 'react';
 
 export default function TrackerLayout() {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack>
       <Stack.Screen
         name="[roomCode]"
         options={{
-          animation: 'slide_from_right',
           headerShown: true,
           headerTitle: 'Match Tracker',
         }}
@@ -16,9 +15,9 @@ export default function TrackerLayout() {
       <Stack.Screen
         name="join/page"
         options={{
-          animation: 'slide_from_bottom',
           headerShown: true,
           headerTitle: 'Join Match',
+          presentation: 'modal',
         }}
       />
     </Stack>
