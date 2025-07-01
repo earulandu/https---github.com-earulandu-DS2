@@ -3,7 +3,13 @@ import { supabase } from '@/supabase';
 import { Session } from '@supabase/supabase-js';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SplashScreen, Stack, useRouter, useSegments } from 'expo-router';
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import { View, Text } from 'react-native';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -22,7 +28,10 @@ const queryClient = new QueryClient({
   },
 });
 
-const AuthContext = createContext<{ session: Session | null; isReady: boolean }>({
+const AuthContext = createContext<{
+  session: Session | null;
+  isReady: boolean;
+}>({
   session: null,
   isReady: false,
 });
@@ -51,7 +60,14 @@ class ErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 20,
+          }}
+        >
           <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>
             Something went wrong!
           </Text>
@@ -68,23 +84,30 @@ class ErrorBoundary extends React.Component<
 
 function RootLayoutNav() {
   console.log('🎯 RootLayoutNav rendering');
-  
+
   const [session, setSession] = useState<Session | null>(null);
   const [isReady, setIsReady] = useState(false);
   const segments = useSegments();
   const router = useRouter();
 
   console.log('📍 Current segments:', segments);
-  console.log('🔐 Session state:', session?.user?.id ? 'Logged in' : 'Not logged in');
+  console.log(
+    '🔐 Session state:',
+    session?.user?.id ? 'Logged in' : 'Not logged in'
+  );
   console.log('✅ isReady:', isReady);
 
   useEffect(() => {
     console.log('🔄 Setting up auth listener');
-    
+
     // Fetch session and set up listener
-    supabase.auth.getSession()
+    supabase.auth
+      .getSession()
       .then(({ data: { session }, error }) => {
-        console.log('📦 Initial session fetch:', session ? 'Session found' : 'No session');
+        console.log(
+          '📦 Initial session fetch:',
+          session ? 'Session found' : 'No session'
+        );
         if (error) {
           console.error('❌ Error fetching session:', error);
         }
@@ -95,8 +118,14 @@ function RootLayoutNav() {
         setIsReady(true);
       });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔔 Auth state changed:', event, session ? 'Session exists' : 'No session');
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log(
+        '🔔 Auth state changed:',
+        event,
+        session ? 'Session exists' : 'No session'
+      );
       setSession(session);
     });
 
@@ -110,7 +139,7 @@ function RootLayoutNav() {
     console.log('🚦 Navigation effect triggered');
     console.log('  - isReady:', isReady);
     console.log('  - segments:', segments);
-    
+
     if (!isReady) {
       console.log('⏳ Not ready yet, skipping navigation');
       return;
@@ -118,7 +147,7 @@ function RootLayoutNav() {
 
     const current = segments.join('/');
     console.log('📍 Current path:', current);
-    
+
     const isRoot = current === '' || current === '+not-found';
     console.log('🏠 Is root?', isRoot);
 
@@ -150,10 +179,8 @@ function RootLayoutNav() {
         <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="(auth)" />
-          <Stack.Screen
-            name="tracker/[roomCode]"
-            options={{ animation: 'slide_from_right', headerShown: true, headerTitle: 'Match Tracker' }}
-          />
+          <Stack.Screen name="tracker" />
+
           <Stack.Screen
             name="post/[id]"
             options={{
@@ -176,7 +203,7 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   console.log('🏁 RootLayout (main) rendering');
-  
+
   try {
     return (
       <ErrorBoundary>
