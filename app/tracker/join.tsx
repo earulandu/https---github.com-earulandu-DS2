@@ -1,10 +1,11 @@
-// app/tracker/[roomCode]/join/page.tsx
+// app/tracker/join.tsx
 'use client';
 
 import { createClient } from '@supabase/supabase-js';
 import { useParams, useRouter } from 'next/navigation';
 
-import React, { useEffect, useState } from 'react';
+// Import useCallback and useEffect from React
+import React, { useCallback, useEffect, useState } from 'react';
 import { ThemedButton } from '@/components/themed/ThemedButton';
 import { ThemedInput } from '@/components/themed/ThemedInput';
 import { ThemedText } from '@/components/themed/ThemedText';
@@ -39,15 +40,17 @@ const JoinMatchPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
   const roomCode = params.roomCode as string;
-  
+
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [liveMatch, setLiveMatch] = useState<LiveMatch | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [selectedPlayerSlot, setSelectedPlayerSlot] = useState<number | null>(null);
+  const [selectedPlayerSlot, setSelectedPlayerSlot] = useState<number | null>(
+    null
+  );
   const [showLogin, setShowLogin] = useState(false);
-  
+
   // Auth state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -56,26 +59,20 @@ const JoinMatchPage: React.FC = () => {
 
   // Get current user
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setCurrentUser(session?.user || null);
-        if (session?.user) {
-          setShowLogin(false);
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setCurrentUser(session?.user || null);
+      if (session?.user) {
+        setShowLogin(false);
       }
-    );
+    });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  // Load live match data
-  useEffect(() => {
-    if (roomCode) {
-      loadLiveMatch();
-    }
-  }, [roomCode]);
-
-  const loadLiveMatch = async () => {
+  // --- FIX 1: Wrap loadLiveMatch in useCallback ---
+  const loadLiveMatch = useCallback(async () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
@@ -102,7 +99,7 @@ const JoinMatchPage: React.FC = () => {
         matchSetup: data.match_setup,
         participants: data.participants || [],
         playerMap: data.player_map || {},
-        matchStartTime: data.match_start_time
+        matchStartTime: data.match_start_time,
       });
     } catch (error) {
       console.error('Error loading live match:', error);
@@ -110,7 +107,14 @@ const JoinMatchPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [roomCode]); // Dependency for useCallback
+
+  // --- FIX 2: Add loadLiveMatch to the dependency array ---
+  useEffect(() => {
+    if (roomCode) {
+      loadLiveMatch();
+    }
+  }, [roomCode, loadLiveMatch]); // Correctly add loadLiveMatch here
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -128,9 +132,9 @@ const JoinMatchPage: React.FC = () => {
           options: {
             data: {
               username: username || email.split('@')[0],
-              display_name: username || 'Player'
-            }
-          }
+              display_name: username || 'Player',
+            },
+          },
         });
 
         if (error) throw error;
@@ -142,11 +146,11 @@ const JoinMatchPage: React.FC = () => {
         // Sign in
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
-          password
+          password,
         });
 
         if (error) throw error;
-        
+
         if (data.user) {
           setCurrentUser(data.user);
           setShowLogin(false);
@@ -168,7 +172,9 @@ const JoinMatchPage: React.FC = () => {
     }
 
     // Check if player slot is already taken
-    const isSlotTaken = Object.values(liveMatch.playerMap).includes(selectedPlayerSlot);
+    const isSlotTaken = Object.values(liveMatch.playerMap).includes(
+      selectedPlayerSlot
+    );
     if (isSlotTaken) {
       setErrorMessage('This player slot is already taken');
       return;
@@ -178,10 +184,12 @@ const JoinMatchPage: React.FC = () => {
     try {
       const updatedPlayerMap = {
         ...liveMatch.playerMap,
-        [currentUser.id]: selectedPlayerSlot
+        [currentUser.id]: selectedPlayerSlot,
       };
 
-      const updatedParticipants = liveMatch.participants.includes(currentUser.id)
+      const updatedParticipants = liveMatch.participants.includes(
+        currentUser.id
+      )
         ? liveMatch.participants
         : [...liveMatch.participants, currentUser.id];
 
@@ -189,7 +197,7 @@ const JoinMatchPage: React.FC = () => {
         .from('live_matches')
         .update({
           player_map: updatedPlayerMap,
-          participants: updatedParticipants
+          participants: updatedParticipants,
         })
         .eq('id', liveMatch.id);
 
@@ -213,14 +221,16 @@ const JoinMatchPage: React.FC = () => {
 
     setIsJoining(true);
     try {
-      const updatedParticipants = liveMatch.participants.includes(currentUser.id)
+      const updatedParticipants = liveMatch.participants.includes(
+        currentUser.id
+      )
         ? liveMatch.participants
         : [...liveMatch.participants, currentUser.id];
 
       const { error } = await supabase
         .from('live_matches')
         .update({
-          participants: updatedParticipants
+          participants: updatedParticipants,
         })
         .eq('id', liveMatch.id);
 
@@ -236,9 +246,11 @@ const JoinMatchPage: React.FC = () => {
     }
   };
 
-  const getPlayerSlotStatus = (slotNumber: number): 'available' | 'taken' | 'you' => {
+  const getPlayerSlotStatus = (
+    slotNumber: number
+  ): 'available' | 'taken' | 'you' => {
     if (!liveMatch || !currentUser) return 'available';
-    
+
     const userInSlot = Object.keys(liveMatch.playerMap).find(
       userId => liveMatch.playerMap[userId] === slotNumber
     );
@@ -250,22 +262,29 @@ const JoinMatchPage: React.FC = () => {
 
   const getUsernameForSlot = (slotNumber: number): string => {
     if (!liveMatch) return '';
-    
+
     const userId = Object.keys(liveMatch.playerMap).find(
       id => liveMatch.playerMap[id] === slotNumber
     );
-    
+
     if (userId) {
       // In a real app, you'd fetch the username from user_profiles
       return `User ${userId.slice(0, 8)}`;
     }
-    
+
     return '';
   };
 
   if (isLoading) {
     return (
-      <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+      <ThemedView
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 20,
+        }}
+      >
         <ThemedText variant="title">Loading...</ThemedText>
       </ThemedView>
     );
@@ -273,24 +292,47 @@ const JoinMatchPage: React.FC = () => {
 
   if (!liveMatch) {
     return (
-      <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-        <ThemedText variant="title" color="error">Match Not Found</ThemedText>
-        <ThemedText variant="body" style={{ textAlign: 'center', marginBottom: 20 }}>
-          The match with room code "{roomCode}" could not be found or has ended.
+      <ThemedView
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 20,
+        }}
+      >
+        <ThemedText variant="title" color="error">
+          Match Not Found
         </ThemedText>
-        <ThemedButton
-          title="Go Home"
-          onPress={() => router.push('/')}
-        />
+        {/* --- FIX 3: Replace " with &quot; --- */}
+        <ThemedText
+          variant="body"
+          style={{ textAlign: 'center', marginBottom: 20 }}
+        >
+          The match with room code &quot;{roomCode}&quot; could not be found or
+          has ended.
+        </ThemedText>
+        <ThemedButton title="Go Home" onPress={() => router.push('/')} />
       </ThemedView>
     );
   }
 
   if (liveMatch.status === 'finished') {
     return (
-      <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-        <ThemedText variant="title" color="warning">Match Finished</ThemedText>
-        <ThemedText variant="body" style={{ textAlign: 'center', marginBottom: 20 }}>
+      <ThemedView
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 20,
+        }}
+      >
+        <ThemedText variant="title" color="warning">
+          Match Finished
+        </ThemedText>
+        <ThemedText
+          variant="body"
+          style={{ textAlign: 'center', marginBottom: 20 }}
+        >
           This match has already finished.
         </ThemedText>
         <ThemedButton
@@ -310,7 +352,8 @@ const JoinMatchPage: React.FC = () => {
         <ThemedText variant="body">{liveMatch.matchSetup.arena}</ThemedText>
         <ThemedText variant="caption">Room Code: {roomCode}</ThemedText>
         <ThemedText variant="caption">
-          Status: {liveMatch.status === 'waiting' ? 'Waiting to Start' : 'In Progress'}
+          Status:{' '}
+          {liveMatch.status === 'waiting' ? 'Waiting to Start' : 'In Progress'}
         </ThemedText>
         {liveMatch.matchStartTime && (
           <ThemedText variant="caption">
@@ -350,7 +393,7 @@ const JoinMatchPage: React.FC = () => {
                   style={{ marginBottom: 10 }}
                 />
               )}
-              
+
               <ThemedInput
                 placeholder="Email"
                 value={email}
@@ -359,7 +402,7 @@ const JoinMatchPage: React.FC = () => {
                 autoCapitalize="none"
                 style={{ marginBottom: 10 }}
               />
-              
+
               <ThemedInput
                 placeholder="Password"
                 value={password}
@@ -368,9 +411,11 @@ const JoinMatchPage: React.FC = () => {
                 style={{ marginBottom: 15 }}
               />
 
-              <ThemedView style={{ flexDirection: 'row', gap: 10, marginBottom: 15 }}>
+              <ThemedView
+                style={{ flexDirection: 'row', gap: 10, marginBottom: 15 }}
+              >
                 <ThemedButton
-                  title={isSignUp ? "Sign Up" : "Login"}
+                  title={isSignUp ? 'Sign Up' : 'Login'}
                   onPress={handleLogin}
                   loading={isLoading}
                   variant="primary"
@@ -383,7 +428,11 @@ const JoinMatchPage: React.FC = () => {
               </ThemedView>
 
               <ThemedButton
-                title={isSignUp ? "Already have an account? Login" : "Need an account? Sign Up"}
+                title={
+                  isSignUp
+                    ? 'Already have an account? Login'
+                    : 'Need an account? Sign Up'
+                }
                 onPress={() => setIsSignUp(!isSignUp)}
                 variant="ghost"
                 size="small"
@@ -397,35 +446,51 @@ const JoinMatchPage: React.FC = () => {
       {currentUser && (
         <ThemedView variant="card" style={{ marginBottom: 20 }}>
           <ThemedText variant="subtitle">Choose Your Role</ThemedText>
-          
+
           {/* Team 1 */}
           <ThemedView style={{ marginBottom: 20 }}>
-            <ThemedText variant="body" style={{ fontWeight: 'bold', marginBottom: 10 }}>
+            <ThemedText
+              variant="body"
+              style={{ fontWeight: 'bold', marginBottom: 10 }}
+            >
               {liveMatch.matchSetup.teamNames[0]}
             </ThemedText>
-            
-            <ThemedView style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+
+            <ThemedView
+              style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}
+            >
               {[1, 2].map(slotNumber => {
                 const status = getPlayerSlotStatus(slotNumber);
                 const username = getUsernameForSlot(slotNumber);
-                
+
                 return (
                   <ThemedView key={slotNumber} style={{ flex: 1 }}>
                     <ThemedButton
-                      title={`${liveMatch.matchSetup.playerNames[slotNumber - 1]}`}
+                      title={`${
+                        liveMatch.matchSetup.playerNames[slotNumber - 1]
+                      }`}
                       variant={
-                        selectedPlayerSlot === slotNumber ? 'primary' :
-                        status === 'taken' ? 'secondary' :
-                        status === 'you' ? 'primary' : 'outline'
+                        selectedPlayerSlot === slotNumber
+                          ? 'primary'
+                          : status === 'taken'
+                          ? 'secondary'
+                          : status === 'you'
+                          ? 'primary'
+                          : 'outline'
                       }
                       disabled={status === 'taken'}
                       onPress={() => setSelectedPlayerSlot(slotNumber)}
                       style={{ marginBottom: 5 }}
                     />
-                    <ThemedText variant="caption" style={{ textAlign: 'center' }}>
-                      {status === 'taken' ? `Taken by ${username}` :
-                       status === 'you' ? 'You' :
-                       'Available'}
+                    <ThemedText
+                      variant="caption"
+                      style={{ textAlign: 'center' }}
+                    >
+                      {status === 'taken'
+                        ? `Taken by ${username}`
+                        : status === 'you'
+                        ? 'You'
+                        : 'Available'}
                     </ThemedText>
                   </ThemedView>
                 );
@@ -435,32 +500,48 @@ const JoinMatchPage: React.FC = () => {
 
           {/* Team 2 */}
           <ThemedView style={{ marginBottom: 20 }}>
-            <ThemedText variant="body" style={{ fontWeight: 'bold', marginBottom: 10 }}>
+            <ThemedText
+              variant="body"
+              style={{ fontWeight: 'bold', marginBottom: 10 }}
+            >
               {liveMatch.matchSetup.teamNames[1]}
             </ThemedText>
-            
-            <ThemedView style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+
+            <ThemedView
+              style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}
+            >
               {[3, 4].map(slotNumber => {
                 const status = getPlayerSlotStatus(slotNumber);
                 const username = getUsernameForSlot(slotNumber);
-                
+
                 return (
                   <ThemedView key={slotNumber} style={{ flex: 1 }}>
                     <ThemedButton
-                      title={`${liveMatch.matchSetup.playerNames[slotNumber - 1]}`}
+                      title={`${
+                        liveMatch.matchSetup.playerNames[slotNumber - 1]
+                      }`}
                       variant={
-                        selectedPlayerSlot === slotNumber ? 'primary' :
-                        status === 'taken' ? 'secondary' :
-                        status === 'you' ? 'primary' : 'outline'
+                        selectedPlayerSlot === slotNumber
+                          ? 'primary'
+                          : status === 'taken'
+                          ? 'secondary'
+                          : status === 'you'
+                          ? 'primary'
+                          : 'outline'
                       }
                       disabled={status === 'taken'}
                       onPress={() => setSelectedPlayerSlot(slotNumber)}
                       style={{ marginBottom: 5 }}
                     />
-                    <ThemedText variant="caption" style={{ textAlign: 'center' }}>
-                      {status === 'taken' ? `Taken by ${username}` :
-                       status === 'you' ? 'You' :
-                       'Available'}
+                    <ThemedText
+                      variant="caption"
+                      style={{ textAlign: 'center' }}
+                    >
+                      {status === 'taken'
+                        ? `Taken by ${username}`
+                        : status === 'you'
+                        ? 'You'
+                        : 'Available'}
                     </ThemedText>
                   </ThemedView>
                 );
